@@ -5,6 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "type": "module",
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -14,6 +15,7 @@
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "mongoose": "^8.18.0",
-    "shortid": "^2.2.17"
+    "shortid": "^2.2.17",
+    "uuid": "^11.1.0"
   }
 }

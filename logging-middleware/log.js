@@ -1,49 +1,43 @@
 import axios from "axios";
-
-const VALID_STACKS = ["backend", "frontend"];
-const VALID_LEVELS = ["debug", "info", "warn", "error", "fatal"];
-const VALID_BACKEND_PACKAGES = [
-  "cache", "controller", "cronjob", "db", "domain",
-  "handler", "repository", "route", "service"
-];
-const VALID_FRONTEND_PACKAGES = [
-  "api", "component", "hook", "page", "state", "style"
-];
-const VALID_COMMON_PACKAGES = ["auth", "config", "middleware", "utils"];
+import { validateLog } from "./validator.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 const LOG_API = "http://20.244.56.144/evaluation-service/logs";
+const ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJNYXBDbGFpbXMiOnsiYXVkIjoiaHR0cDovLzIwLjI0NC41Ni4xNDQvZXZhbHVhdGlvbi1zZXJ2aWNlIiwiZW1haWwiOiJnZWV0aWthbmFoYWtAZ21haWwuY29tIiwiZXhwIjoxNzU2OTY4OTkwLCJpYXQiOjE3NTY5NjgwOTAsImlzcyI6IkFmZm9yZCBNZWRpY2FsIFRlY2hub2xvZ2llcyBQcml2YXRlIExpbWl0ZWQiLCJqdGkiOiI5MjI4MDhjYi1hNzFiLTQ0ZDUtOGFlNS02ZjhiZWYxYmJiNjEiLCJsb2NhbGUiOiJlbi1JTiIsIm5hbWUiOiJnZWV0aWthIG5haGFrIiwic3ViIjoiMjM3YTMzMWMtYTlhYy00Mzk3LThlYTQtNDg0NWYyMzM4ZjlhIn0sImVtYWlsIjoiZ2VldGlrYW5haGFrQGdtYWlsLmNvbSIsIm5hbWUiOiJnZWV0aWthIG5haGFrIiwicm9sbE5vIjoiMjJsMzFhMDU1NSIsImFjY2Vzc0NvZGUiOiJZenVKZVUiLCJjbGllbnRJRCI6IjIzN2EzMzFjLWE5YWMtNDM5Ny04ZWE0LTQ4NDVmMjMzOGY5YSIsImNsaWVudFNlY3JldCI6InVockNRdVdHRHZXV25Vd2sifQ.lHODWBnQLKrBpdOkqaC5BfkRNdfe8ia3rpwzN0Xdv3U";
 
-export async function logEvent({ stack, level, pkg, message }) {
+export async function createLogger({ stack, level, pkg, message }) {
   try {
-    
-    if (!VALID_STACKS.includes(stack)) {
-      throw new Error(`Invalid stack: ${stack}`);
-    }
+    validateLog({ stack, level, pkg });
 
-    if (!VALID_LEVELS.includes(level)) {
-      throw new Error(`Invalid level: ${level}`);
-    }
+    const res = await axios.post(
+      LOG_API,
+      { stack, level, package: pkg, message },
+      {
+        headers: {
+          Authorization: `Bearer ${ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-    if (stack === "backend" && 
-        ![...VALID_BACKEND_PACKAGES, ...VALID_COMMON_PACKAGES].includes(pkg)) {
-      throw new Error(`Invalid backend package: ${pkg}`);
-    }
-
-    if (stack === "frontend" && 
-        ![...VALID_FRONTEND_PACKAGES, ...VALID_COMMON_PACKAGES].includes(pkg)) {
-      throw new Error(`Invalid frontend package: ${pkg}`);
-    }
-
-    const response = await axios.post(LOG_API, {
-      stack,
-      level,
-      package: pkg,
-      message,
-    });
-
-    return response.data; 
-  } catch (error) {
-    console.error("Logging failed:", error.message);
-    return { error: error.message };
+    return res.data;
+  } catch (err) {
+    console.error("Logging failed:", err.message);
+    return { error: err.message };
   }
+}
+
+export function loggingMiddleware(stack, pkg) {
+  return async (req, res, next) => {
+    res.on("finish", async () => {
+      await createLogger({
+        stack,
+        pkg,
+        level: "info",
+        message: `${req.method} ${req.originalUrl} - ${res.statusCode}`,
+      });
+    });
+    next();
+  };
 }
