@@ -47,7 +47,7 @@ function App() {
   return (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 p-4">
   <div className="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-2xl border border-blue-50">
-    <h1 className="text-4xl font-extrabold text-center text-blue-700 mb-8 tracking-tight drop-shadow-md">
+    <h1 className="text-4xl font-extrabold text-center text-blue-600 mb-8 tracking-tight drop-shadow-md">
       URL Shortener
     </h1>
 
@@ -61,7 +61,7 @@ function App() {
 
     <button
       onClick={handleShorten}
-      className="w-full mt-4 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 text-white py-3 rounded-lg font-semibold transition duration-150 shadow-md"
+      className="w-full mt-4 bg-blue-500 from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 text-white py-3 rounded-lg font-semibold transition duration-150 shadow-md"
     >
       Shorten
     </button>
